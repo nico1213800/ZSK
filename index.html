@@ -2,286 +2,344 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>裁量权基准 · 匹配法律法规条款统计</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>行政处罚裁量标准详情</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: #f0f2f5;
-            padding: 30px 24px;
-            color: #1e293b;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+            background: #eef2f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
         }
-
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 20, 40, 0.55);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
         }
-
-        .header {
-            text-align: center;
-            margin-bottom: 32px;
+        .modal-container {
+            max-width: 880px;
+            width: 100%;
+            max-height: 90vh;
+            background: #fff;
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 32, 64, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: fadeSlideUp 0.25s ease;
         }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            -webkit-background-clip: text;
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 28px;
+            border-bottom: 1px solid #e9edf2;
+        }
+        .modal-header h2 {
+            font-size: 1.55rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #1a4c7a, #0e3a5c);
             background-clip: text;
+            -webkit-background-clip: text;
             color: transparent;
+        }
+        .close-btn {
+            background: #f0f4f9;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 24px;
+            color: #2c5a7a;
+        }
+        .close-btn:hover { background: #e2e8f0; }
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 28px 32px;
+        }
+        .info-primary-card {
+            background: #fff;
+            border-radius: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.03), 0 0 0 1px rgba(66,153,225,0.12);
+            margin-bottom: 28px;
+        }
+        .violation-bar {
+            background: #f0f7ff;
+            border-bottom: 1px solid #e2edf7;
+            padding: 16px 24px;
+        }
+        .violation-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #2a6eaa;
             margin-bottom: 8px;
         }
-
-        .header p {
-            color: #475569;
-            font-size: 16px;
+        .violation-label::before { content: "▍"; font-size: 1.1rem; color: #3b82f6; }
+        .violation-content {
+            font-size: 0.96rem;
+            line-height: 1.5;
+            color: #1f2f3c;
+            font-weight: 500;
         }
-
-        /* 统计卡片区 */
-        .stats-grid {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 32px;
-            flex-wrap: wrap;
-        }
-
-        .stat-card {
-            flex: 1;
-            min-width: 180px;
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            text-align: center;
-            border-top: 4px solid;
-        }
-
-        .stat-card.match {
-            border-top-color: #10b981;
-        }
-        .stat-card.missing {
-            border-top-color: #f59e0b;
-        }
-        .stat-card.total {
-            border-top-color: #3b82f6;
-        }
-
-        .stat-number {
-            font-size: 42px;
-            font-weight: 800;
-            line-height: 1.2;
-        }
-
-        .stat-card.match .stat-number { color: #10b981; }
-        .stat-card.missing .stat-number { color: #f59e0b; }
-        .stat-card.total .stat-number { color: #3b82f6; }
-
-        .stat-label {
-            font-size: 14px;
-            color: #64748b;
-            margin-top: 8px;
-        }
-
-        /* 双栏布局 */
-        .law-sections {
+        .row-dual {
             display: flex;
             flex-wrap: wrap;
-            gap: 28px;
+            border-bottom: 1px solid #eff3f9;
         }
-
-        .law-panel {
+        .dual-item {
             flex: 1;
-            background: white;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
+            padding: 20px 24px;
+            min-width: 200px;
         }
-
-        .panel-header {
-            padding: 18px 24px;
-            font-size: 18px;
+        .dual-item:first-child { border-right: 1px solid #eff3f9; }
+        .info-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
             font-weight: 700;
-            background: #f8fafc;
-            border-bottom: 2px solid #e2e8f0;
+            text-transform: uppercase;
+            color: #2a6eaa;
+            margin-bottom: 14px;
+        }
+        .info-label::before { content: "▍"; font-size: 1.1rem; color: #3b82f6; }
+        .info-card-content {
+            background: #fbfdff;
+            border-radius: 18px;
+            border: 1px solid #edf2f0;
+            padding: 14px 16px;
+        }
+        .law-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1e4663;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed #e2edf7;
+        }
+        .law-body, .statute-full-text {
+            font-size: 0.88rem;
+            line-height: 1.5;
+            color: #2c4e6e;
+        }
+        .penalty-section { padding: 20px 24px; }
+        .penalty-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 10px;
+            margin-bottom: 12px;
         }
-
-        .panel-header .badge {
-            background: #e6f0ff;
+        .info-label-penalty {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #2a6eaa;
+        }
+        .info-label-penalty::before { content: "▍"; font-size: 1.1rem; color: #3b82f6; }
+        .subject-badge {
+            background: #fef3e2;
+            color: #c25b0e;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #ffe0b5;
+        }
+        .subject-badge::before { content: "⚖️"; font-size: 0.75rem; }
+        .penalty-content {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #1f2f3c;
+            background: #fbfdff;
+            padding: 8px 14px;
+            border-radius: 18px;
+            border: 1px solid #edf2f0;
+        }
+        .tiers-section { margin-top: 12px; }
+        .section-caption {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1e5a88;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 4px solid #2a7fcc;
+            padding-left: 16px;
+        }
+        .tiers-container { display: flex; flex-direction: column; gap: 20px; }
+        .tier-card {
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid #edf2f9;
+            overflow: hidden;
+        }
+        .tier-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 22px;
+            cursor: pointer;
+        }
+        .tier-header-left { display: flex; align-items: center; gap: 12px; }
+        .tier-badge {
+            background: #eef3fc;
+            border-radius: 40px;
+            padding: 5px 16px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #1e6eb5;
+        }
+        .tier-name { font-size: 1.2rem; font-weight: 650; color: #1e4663; }
+        .tier-toggle { font-size: 1.6rem; color: #6c8eae; }
+        .tier-content { padding: 8px 22px 22px; border-top: 1px solid #eff3f8; }
+        .tier-condition { margin-bottom: 20px; }
+        .condition-label, .penalty-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #2a6b9c;
+            background: #f0f6fe;
             padding: 4px 14px;
             border-radius: 30px;
-            font-size: 13px;
-            font-weight: 500;
+            margin-bottom: 10px;
         }
-
-        .guangdong .panel-header {
-            color: #1e3a8a;
-            border-left: 5px solid #2563eb;
+        .condition-label::before, .penalty-label::before { content: "▹"; font-size: 11px; color: #2c7bc0; }
+        .condition-value, .penalty-value {
+            font-size: 0.92rem;
+            line-height: 1.5;
+            color: #1f2f3c;
+            background: #fbfdff;
+            padding: 8px 14px;
+            border-radius: 18px;
+            border: 1px solid #edf2f0;
+            white-space: pre-wrap;
         }
-
-        .shenzhen .panel-header {
-            color: #0f766e;
-            border-left: 5px solid #0d9488;
-        }
-
-        .law-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .law-table th {
-            text-align: left;
-            padding: 14px 20px;
-            background-color: #f9fafb;
-            font-weight: 600;
-            color: #2c3e66;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 13px;
-        }
-
-        .law-table td {
-            padding: 12px 20px;
-            border-bottom: 1px solid #f0f2f6;
-            font-size: 14px;
-            vertical-align: top;
-        }
-
-        .law-table tr:hover td {
-            background-color: #fefce8;
-        }
-
-        .law-name {
-            font-weight: 600;
-            color: #0f172a;
-        }
-
-        .count-badge {
-            background: #eef2ff;
-            padding: 4px 10px;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #1e40af;
-            display: inline-block;
-        }
-
-        .missing-note {
-            background: #fef9e3;
-            border-left: 4px solid #f59e0b;
-            padding: 16px 24px;
-            border-radius: 16px;
-            margin-top: 28px;
-            font-size: 14px;
-            color: #7c5c2c;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 36px;
-            font-size: 12px;
-            color: #94a3b8;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
+        @media (max-width: 680px) {
+            .modal-body { padding: 18px; }
+            .dual-item { padding: 16px 14px; }
+            .tier-name { font-size: 1.05rem; }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>📊 行政处罚裁量权基准 · 匹配法律法规统计</h1>
-        <p>广东省文件 + 深圳市文件 | 与系统库匹配的法律法规及条款数量</p>
-    </div>
-
-    <!-- 统计卡片 -->
-    <div class="stats-grid">
-        <div class="stat-card match">
-            <div class="stat-number">15</div>
-            <div class="stat-label">✅ 匹配上的法律法规</div>
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2>行政处罚裁量标准详情</h2>
+            <button class="close-btn" id="closeModalBtn">✕</button>
         </div>
-        <div class="stat-card missing">
-            <div class="stat-number">10</div>
-            <div class="stat-label">📌 待补充法规数量</div>
-        </div>
-        <div class="stat-card total">
-            <div class="stat-number">102+</div>
-            <div class="stat-label">📖 涉及条款总数（匹配部分）</div>
-        </div>
-    </div>
-
-    <!-- 双栏：广东省 + 深圳市 匹配法规 -->
-    <div class="law-sections">
-        <!-- 广东省文件匹配的法律 -->
-        <div class="law-panel guangdong">
-            <div class="panel-header">
-                <span>📘 广东省裁量权基准 · 匹配法规</span>
-                <span class="badge">共 9 部</span>
+        <div class="modal-body">
+            <div class="info-primary-card">
+                <div class="violation-bar">
+                    <div class="violation-label">违法行为</div>
+                    <div class="violation-content">社会公用计量标准，企业、事业单位的各项最高计量标准器具，未经市市场监管部门考核合格而开展检定的。</div>
+                </div>
+                <div class="row-dual">
+                    <div class="dual-item">
+                        <div class="info-label">法律法规</div>
+                        <div class="info-card-content">
+                            <div class="law-title">《中华人民共和国计量法实施细则》第三十七条</div>
+                            <div class="law-body">社会公用计量标准、企业、事业单位的各项最高计量标准器具，未经市市场监管部门考核合格而开展检定的，由市市场监管部门责令停止使用，可以并处一千元以上一万元以下罚款。</div>
+                        </div>
+                    </div>
+                    <div class="dual-item">
+                        <div class="info-label">设定依据</div>
+                        <div class="info-card-content">
+                            <div class="law-title">《中华人民共和国计量法实施细则》第三十七条</div>
+                            <div class="statute-full-text">【具体条文】社会公用计量标准、企业、事业单位的各项最高计量标准器具，未经市市场监管部门考核合格而开展检定的，由市市场监管部门责令停止使用，可以并处一千元以上一万元以下罚款。</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="penalty-section">
+                    <div class="penalty-header">
+                        <div class="info-label-penalty">处罚种类和幅度</div>
+                        <span class="subject-badge">实施主体：市市场监管部门</span>
+                    </div>
+                    <div class="penalty-content">责令停止使用，可以并处一千元以上一万元以下罚款。</div>
+                </div>
             </div>
-            <table class="law-table">
-                <thead>
-                    <tr>
-                        <th style="width: 60%;">法律名称</th>
-                        <th style="width: 40%;">涉及条款数量</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td class="law-name">《中华人民共和国公司法》（2023年修订）</td><td><span class="count-badge">7条</span></td></tr>
-                    <tr><td class="law-name">《中华人民共和国市场主体登记管理条例》</td><td><span class="count-badge">7条</span></td></tr>
-                    <tr><td class="law-name">《中华人民共和国广告法》（2021年修正）</td><td><span class="count-badge">9条</span></td></tr>
-                    <tr><td class="law-name">《中华人民共和国产品质量法》（2018年修正）</td><td><span class="count-badge">11条</span></td></tr>
-                    <tr><td class="law-name">《中华人民共和国特种设备安全法》</td><td><span class="count-badge">40+条</span></td></tr>
-                    <tr><td class="law-name">《中华人民共和国食品安全法》（2021年修正）</td><td><span class="count-badge">40+条</span></td></tr>
-                    <tr><td class="law-name">《中华人民共和国反不正当竞争法》（2019年修正）</td><td><span class="count-badge">8条</span></td></tr>
-                    <tr><td class="law-name">《中华人民共和国价格法》</td><td><span class="count-badge">5条</span></td></tr>
-                    <tr><td class="law-name">《广东省电梯使用安全条例》</td><td><span class="count-badge">9条</span></td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- 深圳市文件匹配的法规 -->
-        <div class="law-panel shenzhen">
-            <div class="panel-header">
-                <span>🏙️ 深圳市裁量权基准 · 匹配法规</span>
-                <span class="badge">共 6 部</span>
+            <div class="tiers-section">
+                <div class="section-caption"><span>⚖️</span> 裁量阶次</div>
+                <div class="tiers-container" id="tiersContainer"></div>
             </div>
-            <table class="law-table">
-                <thead>
-                    <tr>
-                        <th style="width: 60%;">法律/法规名称</th>
-                        <th style="width: 40%;">涉及条款数量</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td class="law-name">《深圳经济特区产品质量管理条例》</td><td><span class="count-badge">9条</span></td></tr>
-                    <tr><td class="law-name">《深圳经济特区食品安全监督条例》</td><td><span class="count-badge">12条</span></td></tr>
-                    <tr><td class="law-name">《深圳经济特区企业技术秘密保护条例》</td><td><span class="count-badge">4条</span></td></tr>
-                    <tr><td class="law-name">《深圳经济特区全面禁止食用野生动物条例》</td><td><span class="count-badge">6条</span></td></tr>
-                    <tr><td class="law-name">《深圳经济特区电梯使用安全若干规定》</td><td><span class="count-badge">7条</span></td></tr>
-                    <tr><td class="law-name">《深圳经济特区消费者权益保护条例》</td><td><span class="count-badge">2条</span></td></tr>
-                </tbody>
-            </table>
         </div>
-    </div>
-
-    <!-- 待补充法规提示（仅数据量） -->
-    <div class="missing-note">
-        <strong>📌 待补充法规（10部）</strong><br>
-        深圳经济特区严厉打击生产、销售假冒伪劣商品违法行为条例 · 深圳经济特区计量条例 · 深圳经济特区知识产权保护条例 · 深圳经济特区社会信用条例 · 深圳经济特区数据条例 · 深圳经济特区城市燃气管理条例 · 深圳经济特区健康条例 · 无证无照经营查处办法 · 价格违法行为行政处罚规定 · 深圳市互联网软件知识产权保护若干规定
-    </div>
-
-    <div class="footer">
-        数据来源：广东省市场监督管理局行政处罚裁量权基准 | 深圳市市场监督管理局行政处罚及行政强制裁量权基准
     </div>
 </div>
+<script>
+    const tiersData = [
+        { name: "不予处罚", badge: "阶次Ⅰ", condition: "有下列情形之一的：\n1. 已申请考核且最终考核结果为合格，立即停止使用，未造成危害后果。\n2. 初次违法，立即停止使用，未造成危害后果。符合不予处罚适用条件，不予立案的，不予实施行政强制措施。", penaltyStandard: "不予行政处罚，责令停止使用，免于罚款。" },
+        { name: "从轻", badge: "阶次Ⅱ", condition: "未经考核合格开展检定出具检定结论 10 个以下，检定结论属实，及时改正。", penaltyStandard: "责令停止使用，并处 0.1 万元以上 0.37 万元以下罚款。" },
+        { name: "一般", badge: "阶次Ⅲ", condition: "未经考核合格开展检定出具检定结论 10 个以上 30 个以下，检定结论属实，及时改正。", penaltyStandard: "责令停止使用，并处 0.37 万元以上 0.73 万元以下罚款。" },
+        { name: "从重", badge: "阶次Ⅳ", condition: "有下列情形之一的：\n1. 未经考核合格开展检定出具检定结论 30 个以上。\n2. 第 2 次以上实施同一性质违法行为。", penaltyStandard: "责令停止使用，并处 0.73 万元以上 1 万元以下罚款。" }
+    ];
+    const container = document.getElementById('tiersContainer');
+    if (container) {
+        tiersData.forEach(tier => {
+            const card = document.createElement('div'); card.className = 'tier-card';
+            const header = document.createElement('div'); header.className = 'tier-header';
+            const leftDiv = document.createElement('div'); leftDiv.className = 'tier-header-left';
+            const badgeSpan = document.createElement('span'); badgeSpan.className = 'tier-badge'; badgeSpan.innerText = tier.badge;
+            const nameSpan = document.createElement('span'); nameSpan.className = 'tier-name'; nameSpan.innerText = tier.name;
+            leftDiv.appendChild(badgeSpan); leftDiv.appendChild(nameSpan);
+            const toggleSpan = document.createElement('span'); toggleSpan.className = 'tier-toggle'; toggleSpan.innerText = '⌵';
+            header.appendChild(leftDiv); header.appendChild(toggleSpan);
+            const contentDiv = document.createElement('div'); contentDiv.className = 'tier-content';
+            const conditionWrapper = document.createElement('div'); conditionWrapper.className = 'tier-condition';
+            const condLabel = document.createElement('div'); condLabel.className = 'condition-label'; condLabel.innerText = '使用条件';
+            const condValue = document.createElement('div'); condValue.className = 'condition-value'; condValue.innerText = tier.condition; condValue.style.whiteSpace = 'pre-wrap';
+            conditionWrapper.appendChild(condLabel); conditionWrapper.appendChild(condValue); contentDiv.appendChild(conditionWrapper);
+            const penaltyWrapper = document.createElement('div');
+            const penaltyLabel = document.createElement('div'); penaltyLabel.className = 'penalty-label'; penaltyLabel.innerText = '处罚标准';
+            const penaltyValue = document.createElement('div'); penaltyValue.className = 'penalty-value'; penaltyValue.innerText = tier.penaltyStandard; penaltyValue.style.whiteSpace = 'pre-wrap';
+            penaltyWrapper.appendChild(penaltyLabel); penaltyWrapper.appendChild(penaltyValue); contentDiv.appendChild(penaltyWrapper);
+            card.appendChild(header); card.appendChild(contentDiv);
+            let expanded = true;
+            const updateFold = () => { toggleSpan.innerText = expanded ? '⌵' : '⌃'; contentDiv.style.display = expanded ? 'block' : 'none'; };
+            updateFold();
+            header.addEventListener('click', (e) => { e.stopPropagation(); expanded = !expanded; updateFold(); });
+            container.appendChild(card);
+        });
+    }
+    document.getElementById('closeModalBtn').addEventListener('click', () => { document.getElementById('modalOverlay').style.display = 'none'; });
+    document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target === document.getElementById('modalOverlay')) document.getElementById('modalOverlay').style.display = 'none'; });
+</script>
 </body>
 </html>
